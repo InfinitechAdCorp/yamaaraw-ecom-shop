@@ -1,10 +1,12 @@
 "use client"
+
 export const dynamic = "force-dynamic"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft, ShoppingBag, Truck, Shield } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft, ShoppingBag, Truck, Shield, User } from "lucide-react"
 import Header from "@/components/layout/header"
 import Footer from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
@@ -21,20 +23,20 @@ export default function CartPage() {
   const router = useRouter()
   const toast = useClientToast()
   const { refreshCart } = useCart()
+
   const [cart, setCart] = useState<CartItem[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
   const [clearing, setClearing] = useState(false)
+  const [isGuest, setIsGuest] = useState(false)
 
   useEffect(() => {
     const user = getCurrentUser()
     if (!user) {
-      router.push("/login")
-      return
+      setIsGuest(true)
     }
-
     fetchCart()
-  }, [router])
+  }, [])
 
   const fetchCart = async () => {
     try {
@@ -108,11 +110,9 @@ export default function CartPage() {
   }
 
   const formatPrice = (price: number) => {
-    // Handle invalid or undefined prices
     if (!price || isNaN(price) || price === null || price === undefined) {
       return "₱0.00"
     }
-
     return new Intl.NumberFormat("en-PH", {
       style: "currency",
       currency: "PHP",
@@ -123,12 +123,9 @@ export default function CartPage() {
 
   const calculateSafeTotal = (cart: CartItem[]) => {
     return cart.reduce((total, item) => {
-      // Ensure price and quantity are valid numbers
       const price = Number.parseFloat(item.price?.toString() || "0") || 0
       const quantity = Number.parseInt(item.quantity?.toString() || "0") || 0
       const itemTotal = price * quantity
-
-      // Only add if the result is a valid number
       return total + (isNaN(itemTotal) ? 0 : itemTotal)
     }, 0)
   }
@@ -234,9 +231,7 @@ export default function CartPage() {
                     key={item.id}
                     className="flex flex-col space-y-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4"
                   >
-                    {/* Mobile: Top row with image and product info */}
                     <div className="flex items-start space-x-4 sm:flex-1">
-                      {/* Product Image */}
                       <div className="relative w-20 h-20 flex-shrink-0">
                         <Image
                           src={item.product.images[0] || "/placeholder.svg"}
@@ -246,8 +241,6 @@ export default function CartPage() {
                           sizes="80px"
                         />
                       </div>
-
-                      {/* Product Info */}
                       <div className="flex-1 min-w-0">
                         <Link href={`/products/${item.product_id}`}>
                           <h3 className="font-semibold text-gray-900 hover:text-orange-600 transition-colors line-clamp-2 text-base">
@@ -260,8 +253,6 @@ export default function CartPage() {
                         </Badge>
                         {item.color && <p className="text-sm text-gray-500">Color: {item.color}</p>}
                       </div>
-
-                      {/* Remove Button - Top right on mobile */}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -273,9 +264,7 @@ export default function CartPage() {
                       </Button>
                     </div>
 
-                    {/* Mobile: Bottom row with quantity controls and price */}
                     <div className="flex items-center justify-between sm:flex-col sm:items-end sm:space-y-2">
-                      {/* Quantity Controls */}
                       <div className="flex items-center space-x-3">
                         <Button
                           variant="outline"
@@ -299,8 +288,6 @@ export default function CartPage() {
                           <Plus className="w-4 h-4" />
                         </Button>
                       </div>
-
-                      {/* Price */}
                       <div className="text-right">
                         <div className="font-bold text-lg text-orange-600">
                           {formatPrice(
@@ -321,6 +308,30 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="space-y-6 mt-8 xl:mt-0">
+            {/* Guest Notice */}
+            {isGuest && (
+              <Card className="border-2 border-blue-200 bg-blue-50">
+                <CardContent className="p-4">
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <h3 className="font-medium text-blue-800">Quick Checkout Available</h3>
+                      <p className="text-sm text-blue-600">
+                        You can checkout as guest or{" "}
+                        <button
+                          onClick={() => router.push("/login")}
+                          className="underline hover:no-underline font-medium"
+                        >
+                          sign in
+                        </button>{" "}
+                        for faster checkout
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl">Order Summary</CardTitle>
@@ -349,7 +360,7 @@ export default function CartPage() {
                   onClick={() => router.push("/checkout")}
                   className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 h-14 sm:h-12 text-lg font-semibold"
                 >
-                  Proceed to Checkout
+                  {isGuest ? "Proceed to Checkout" : "Proceed to Checkout"}
                 </Button>
 
                 <div className="space-y-3 text-center text-sm text-gray-500">
@@ -361,6 +372,12 @@ export default function CartPage() {
                     <Truck className="w-4 h-4 text-orange-500" />
                     <span>Free shipping on orders over ₱50,000</span>
                   </div>
+                  {isGuest && (
+                    <div className="flex items-center justify-center gap-2">
+                      <User className="w-4 h-4 text-blue-500" />
+                      <span>Guest checkout available - no account required</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

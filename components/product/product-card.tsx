@@ -1,14 +1,13 @@
 "use client"
 
-import type React from "react"
+import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
-import { ShoppingCart, Heart, Star } from "lucide-react"
+import { ShoppingCart, Heart, Star } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { addToCart } from "@/lib/cart"
-import { getCurrentUser } from "@/lib/auth"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useClientToast } from "@/hooks/use-client-toast"
 
 interface ProductCardProps {
   product: {
@@ -25,21 +24,15 @@ interface ProductCardProps {
   }
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const router = useRouter()
+  const toast = useClientToast()
   const [isAdding, setIsAdding] = useState(false)
   const [imageError, setImageError] = useState(false)
 
   const handleAddToCart = async (event: React.MouseEvent) => {
     // Prevent card click when clicking add to cart button
     event.stopPropagation()
-
-    const user = getCurrentUser()
-
-    if (!user) {
-      router.push("/login")
-      return
-    }
 
     if (!product.id) {
       console.error("Product ID is missing")
@@ -81,9 +74,14 @@ export default function ProductCard({ product }: ProductCardProps) {
       // Convert string ID to number if needed
       const productId = typeof product.id === "string" ? Number.parseInt(product.id) : product.id
       await addToCart(productId, 1)
+      
+      // Show success toast
+      toast.cartAdded(product.name)
+      
       console.log("Added to cart successfully!")
     } catch (error) {
       console.error("Error adding to cart:", error)
+      toast.error("Failed to Add", "Could not add item to cart. Please try again.")
     } finally {
       setIsAdding(false)
     }
@@ -135,9 +133,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Enhanced Action Buttons - Only Wishlist now */}
-        
-
         {/* Stock Status Overlay */}
         {!product.in_stock && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
@@ -169,9 +164,6 @@ export default function ProductCard({ product }: ProductCardProps) {
             Model: <span className="text-gray-700">{product.model}</span>
           </p>
         )}
-
-        {/* Description */}
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2 leading-relaxed">{product.description}</p>
 
         {/* Rating */}
         <div className="flex items-center gap-2 mb-4">
@@ -226,3 +218,5 @@ export default function ProductCard({ product }: ProductCardProps) {
     </div>
   )
 }
+
+export default ProductCard

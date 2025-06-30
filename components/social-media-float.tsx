@@ -20,7 +20,7 @@ export default function SocialMediaFloat() {
     {
       name: "Facebook",
       icon: Facebook,
-      url: "https://www.facebook.com/people/Yamaaraw-E-bike-Shop",
+      url: "https://www.facebook.com/people/Yamaaraw-E-bike-Shop/61577170012049/",
       color: "bg-blue-600 hover:bg-blue-700",
     },
     {
@@ -52,67 +52,70 @@ export default function SocialMediaFloat() {
   return (
     <>
       {/* Desktop View - Always visible on right side */}
-      <div className="hidden lg:block fixed right-6 top-1/2 transform -translate-y-1/2 z-[9997]">
-        <div className="flex flex-col space-y-3">
-          {socialLinks.map((social, index) => {
-            const IconComponent = social.icon
-            return (
-              <Button
-                key={social.name}
-                asChild
-                className={`w-12 h-12 rounded-full shadow-lg transition-all duration-300 hover:scale-110 ${social.color}`}
-                title={social.name}
-              >
-                <a href={social.url} target="_blank" rel="noopener noreferrer">
-                  <IconComponent className="w-5 h-5 text-white" />
-                </a>
-              </Button>
-            )
-          })}
-        </div>
-      </div>
+    <div className="hidden lg:block fixed right-6 top-1/2 transform -translate-y-1/2 z-[9997]">
+  <div className="flex flex-col space-y-4">
+    {socialLinks.map((social, index) => {
+      const IconComponent = social.icon
+      return (
+        <Button
+          key={social.name}
+          asChild
+          className={`w-14 h-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110 ${social.color}`}
+          title={social.name}
+        >
+          <a href={social.url} target="_blank" rel="noopener noreferrer">
+            <IconComponent className="w-6 h-6 text-white" />
+          </a>
+        </Button>
+      )
+    })}
+  </div>
+</div>
+
 
       {/* Mobile View - Expandable menu */}
-      <div className="lg:hidden fixed right-6 top-1/2 transform -translate-y-1/2 z-[9997]">
-        <div className="flex flex-col items-center space-y-3">
-          {/* Expandable social icons */}
-          <div
-            className={`flex flex-col space-y-3 transition-all duration-300 ${
-              isExpanded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
-            }`}
-          >
-            {socialLinks.map((social, index) => {
-              const IconComponent = social.icon
-              return (
-                <Button
-                  key={social.name}
-                  asChild
-                  className={`w-10 h-10 rounded-full shadow-lg transition-all duration-300 hover:scale-110 ${social.color}`}
-                  style={{ transitionDelay: `${index * 50}ms` }}
-                  title={social.name}
-                >
-                  <a href={social.url} target="_blank" rel="noopener noreferrer">
-                    <IconComponent className="w-4 h-4 text-white" />
-                  </a>
-                </Button>
-              )
-            })}
-          </div>
-
-          {/* Toggle button */}
+     {/* Mobile View - Expandable menu */}
+<div className="lg:hidden fixed right-6 top-1/2 transform -translate-y-1/2 z-[9997]">
+  <div className="flex flex-col items-center space-y-4">
+    {/* Expandable social icons */}
+    <div
+      className={`flex flex-col space-y-4 transition-all duration-300 ${
+        isExpanded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+      }`}
+    >
+      {socialLinks.map((social, index) => {
+        const IconComponent = social.icon
+        return (
           <Button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className={`w-12 h-12 rounded-full shadow-xl transition-all duration-300 ${
-              isExpanded
-                ? "bg-red-500 hover:bg-red-600 rotate-45"
-                : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-            }`}
-            aria-label={isExpanded ? "Close social menu" : "Open social menu"}
+            key={social.name}
+            asChild
+            className={`w-14 h-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110 ${social.color}`}
+            style={{ transitionDelay: `${index * 50}ms` }}
+            title={social.name}
           >
-            <Share2 className="w-5 h-5 text-white" />
+            <a href={social.url} target="_blank" rel="noopener noreferrer">
+              <IconComponent className="w-6 h-6 text-white" />
+            </a>
           </Button>
-        </div>
-      </div>
+        )
+      })}
+    </div>
+
+    {/* Toggle button */}
+    <Button
+      onClick={() => setIsExpanded(!isExpanded)}
+      className={`w-14 h-14 rounded-full shadow-xl transition-all duration-300 ${
+        isExpanded
+          ? "bg-red-500 hover:bg-red-600 rotate-45"
+          : "bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+      }`}
+      aria-label={isExpanded ? "Close social menu" : "Open social menu"}
+    >
+      <Share2 className="w-6 h-6 text-white" />
+    </Button>
+  </div>
+</div>
+
     </>
   )
 }

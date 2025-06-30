@@ -163,14 +163,14 @@ export default function LoginPage() {
                   </label>
                 </div>
 
-                <div className="text-sm">
+                {/* <div className="text-sm">
                   <Link
                     href="/forgot-password"
                     className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
                   >
                     Forgot password?
                   </Link>
-                </div>
+                </div> */}
               </div>
 
               <Button
@@ -207,7 +207,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="text-center mt-8 text-sm text-gray-500">
+        {/* <div className="text-center mt-8 text-sm text-gray-500">
           <p>
             By signing in, you agree to our{" "}
             <Link
@@ -224,7 +224,7 @@ export default function LoginPage() {
               Privacy Policy
             </Link>
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );

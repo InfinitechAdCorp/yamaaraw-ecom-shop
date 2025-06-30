@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, Instagram, Twitter, Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -22,11 +22,6 @@ export default function Footer() {
               beyond. Delivering smart, sustainable, and high-performance
               electric vehicles.
             </p>
-            <div className="flex space-x-4">
-              <Facebook className="w-5 h-5 text-gray-400 hover:text-orange-400 cursor-pointer transition-colors" />
-              <Instagram className="w-5 h-5 text-gray-400 hover:text-orange-400 cursor-pointer transition-colors" />
-              <Twitter className="w-5 h-5 text-gray-400 hover:text-orange-400 cursor-pointer transition-colors" />
-            </div>
           </div>
 
           {/* Products */}
@@ -35,32 +30,32 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/products?category=Electric Bicycles"
-                  className="text-gray-300 hover:text-orange-400 transition-colors"
+                  href="/products?category=E-Bike"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
                 >
                   Electric Bicycles
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/products?category=Electric Tricycles"
-                  className="text-gray-300 hover:text-orange-400 transition-colors"
+                  href="/products?category=E-Trike"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
                 >
                   Electric Tricycles
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/products?category=Electric Motorcycles"
-                  className="text-gray-300 hover:text-orange-400 transition-colors"
+                  href="/products?category=E-Motorcycle"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
                 >
                   Electric Motorcycles
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/products?category=Solar-Powered Bicycles"
-                  className="text-gray-300 hover:text-orange-400 transition-colors"
+                  href="/products?category=E-Dump"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
                 >
                   Electric Dump Truck Tricycle
                 </Link>
@@ -74,32 +69,32 @@ export default function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="/support"
-                  className="text-gray-300 hover:text-orange-400 transition-colors"
+                  href="/support/customer-support"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
                 >
                   Customer Support
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/warranty"
-                  className="text-gray-300 hover:text-orange-400 transition-colors"
+                  href="/support/warranty"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
                 >
                   Warranty
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/service"
-                  className="text-gray-300 hover:text-orange-400 transition-colors"
+                  href="/support/service-centers"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
                 >
                   Service Centers
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/faq"
-                  className="text-gray-300 hover:text-orange-400 transition-colors"
+                  href="/support/faq"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
                 >
                   FAQ
                 </Link>
@@ -111,17 +106,40 @@ export default function Footer() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Contact Us</h3>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-orange-400" />
-                <span className="text-gray-300">Manila, Philippines</span>
+              <div className="flex items-start space-x-2">
+                <MapPin className="w-4 h-4 text-orange-400 mt-1" />
+                <div>
+                  <a
+                    href="https://www.google.com/maps?q=DRT+Highway,+Brgy.+Cutcot,+Pulilan,+Bulacan,+Philippines"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
+                  >
+                    DRT Highway, Brgy. Cutcot,<br />
+                    Pulilan, Bulacan, Philippines
+                  </a>
+                  
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4 text-orange-400" />
-                <span className="text-gray-300">+63 (02) 123-4567</span>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Phone className="w-4 h-4 text-orange-400" />
+                  <a
+                    href="tel:09456754591"
+                    className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
+                  >
+                    09456754591
+                  </a>
+                </div>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-orange-400" />
-                <span className="text-gray-300">info@yamaaraw.com</span>
+                <a
+                  href="mailto:info@yamaaraw.com"
+                  className="text-gray-300 hover:text-orange-400 transition-colors duration-200"
+                >
+                  info@yamaaraw.com
+                </a>
               </div>
             </div>
           </div>
@@ -132,20 +150,6 @@ export default function Footer() {
             <p className="text-gray-400 text-sm">
               © 2025 YAMAARAW. All rights reserved.
             </p>
-            <div className="flex space-x-6 mt-4 md:mt-0">
-              <Link
-                href="/privacy"
-                className="text-gray-400 hover:text-orange-400 text-sm transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href="/terms"
-                className="text-gray-400 hover:text-orange-400 text-sm transition-colors"
-              >
-                Terms of Service
-              </Link>
-            </div>
           </div>
         </div>
       </div>

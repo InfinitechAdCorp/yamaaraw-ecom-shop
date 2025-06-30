@@ -1,5 +1,6 @@
 import type { User, AuthResponse } from "./types"
 import { setClientSession, clearClientSession, getCurrentUser as getClientUser } from "./session"
+import { transferGuestCart } from "./cart"
 
 // Export the User type for external use
 export type { User } from "./types"
@@ -26,6 +27,14 @@ export async function register(email: string, password: string, name: string): P
 
       // Store session
       setClientSession(sessionData)
+
+      // Transfer guest cart if exists
+      try {
+        await transferGuestCart()
+      } catch (error) {
+        console.warn("Failed to transfer guest cart:", error)
+        // Don't fail registration if cart transfer fails
+      }
 
       return data.data.user
     }
@@ -60,6 +69,14 @@ export async function login(email: string, password: string): Promise<{ user: Us
       // Store session
       setClientSession(sessionData)
 
+      // Transfer guest cart if exists
+      try {
+        await transferGuestCart()
+      } catch (error) {
+        console.warn("Failed to transfer guest cart:", error)
+        // Don't fail login if cart transfer fails
+      }
+
       // Determine redirect based on user role
       const redirectTo = data.data.user.role === "admin" ? "/admin" : "/"
 
@@ -79,6 +96,7 @@ export async function login(email: string, password: string): Promise<{ user: Us
 export async function logout(): Promise<void> {
   try {
     const token = getAuthToken()
+
     if (token) {
       await fetch("/api/logout", {
         method: "POST",
@@ -103,6 +121,7 @@ export function getAuthToken(): string | null {
   try {
     const sessionData = localStorage.getItem("session")
     if (!sessionData) return null
+
     const session = JSON.parse(sessionData)
     return session.token || null
   } catch (error) {

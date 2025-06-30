@@ -25,6 +25,35 @@ interface CartResponse {
   message?: string
   data?: CartItem | CartItem[]
   deleted_items?: number
+  session_id?: string
+}
+
+// Session management for guest users
+class GuestSession {
+  private static SESSION_KEY = "guest_session_id"
+
+  static getSessionId(): string {
+    if (typeof window === "undefined") return ""
+
+    let sessionId = localStorage.getItem(this.SESSION_KEY)
+    if (!sessionId) {
+      sessionId = "guest_" + Math.random().toString(36).substr(2, 16) + Date.now().toString(36)
+      localStorage.setItem(this.SESSION_KEY, sessionId)
+    }
+    return sessionId
+  }
+
+  static clearSession(): void {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(this.SESSION_KEY)
+    }
+  }
+
+  static setSessionId(sessionId: string): void {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(this.SESSION_KEY, sessionId)
+    }
+  }
 }
 
 // Utility function to safely convert to number
@@ -37,7 +66,6 @@ const safeNumber = (value: any): number => {
 // Utility function to safely format price
 export const formatPrice = (price: number | string | null | undefined): string => {
   const numPrice = safeNumber(price)
-
   return new Intl.NumberFormat("en-PH", {
     style: "currency",
     currency: "PHP",
@@ -46,21 +74,44 @@ export const formatPrice = (price: number | string | null | undefined): string =
   }).format(numPrice)
 }
 
+// Get headers for API requests
+function getRequestHeaders(): HeadersInit {
+  const token = getAuthToken()
+  const sessionId = GuestSession.getSessionId()
+
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  if (sessionId) {
+    headers["X-Session-ID"] = sessionId
+  }
+
+  return headers
+}
+
 export async function getCart(): Promise<CartItem[]> {
   try {
     const token = getAuthToken()
-    if (!token) {
+    const sessionId = GuestSession.getSessionId()
+
+    // If no token and no session, return empty cart
+    if (!token && !sessionId) {
       return []
     }
 
     const response = await fetch("/api/cart", {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getRequestHeaders(),
     })
 
     const data: CartResponse = await response.json()
+
     if (data.success && data.data) {
       const cartItems = data.data as CartItem[]
       // Ensure all items have required properties with safe number conversion
@@ -96,29 +147,28 @@ export async function getCart(): Promise<CartItem[]> {
 
 export async function addToCart(productId: number, quantity = 1, color?: string): Promise<CartItem | null> {
   try {
-    const token = getAuthToken()
-    if (!token) {
-      throw new Error("Authentication required")
-    }
-
-    // Ensure quantity is a valid positive number
     const safeQuantity = Math.max(1, safeNumber(quantity))
+    const sessionId = GuestSession.getSessionId()
 
     const response = await fetch("/api/cart", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getRequestHeaders(),
       body: JSON.stringify({
         product_id: productId,
         quantity: safeQuantity,
         color,
+        session_id: sessionId,
       }),
     })
 
     const data: CartResponse = await response.json()
+
     if (data.success && data.data) {
+      // Update session ID if provided (for new guest users)
+      if (data.session_id) {
+        GuestSession.setSessionId(data.session_id)
+      }
+
       // Dispatch cart updated event
       window.dispatchEvent(new CustomEvent("cartUpdated"))
 
@@ -141,26 +191,19 @@ export async function addToCart(productId: number, quantity = 1, color?: string)
 
 export async function updateCartQuantity(itemId: string, quantity: number): Promise<boolean> {
   try {
-    const token = getAuthToken()
-    if (!token) {
-      throw new Error("Authentication required")
-    }
-
-    // Ensure quantity is a valid positive number
     const safeQuantity = Math.max(1, safeNumber(quantity))
 
     const response = await fetch(`/api/cart/${itemId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getRequestHeaders(),
       body: JSON.stringify({
         quantity: safeQuantity,
+        session_id: GuestSession.getSessionId(),
       }),
     })
 
     const data: CartResponse = await response.json()
+
     if (data.success) {
       window.dispatchEvent(new CustomEvent("cartUpdated"))
     }
@@ -174,19 +217,16 @@ export async function updateCartQuantity(itemId: string, quantity: number): Prom
 
 export async function removeFromCart(itemId: string): Promise<boolean> {
   try {
-    const token = getAuthToken()
-    if (!token) {
-      throw new Error("Authentication required")
-    }
-
     const response = await fetch(`/api/cart/${itemId}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: getRequestHeaders(),
+      body: JSON.stringify({
+        session_id: GuestSession.getSessionId(),
+      }),
     })
 
     const data: CartResponse = await response.json()
+
     if (data.success) {
       window.dispatchEvent(new CustomEvent("cartUpdated"))
     }
@@ -198,45 +238,23 @@ export async function removeFromCart(itemId: string): Promise<boolean> {
   }
 }
 
-// Clear entire cart - Updated with better error handling
 export async function clearCart(): Promise<boolean> {
   try {
-    const token = getAuthToken()
-    if (!token) {
-      console.error("No authentication token found")
-      throw new Error("Authentication required")
-    }
-
-    console.log("Attempting to clear cart with token:", token.substring(0, 10) + "...")
-
     const response = await fetch("/api/cart/clear", {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
+      headers: getRequestHeaders(),
+      body: JSON.stringify({
+        session_id: GuestSession.getSessionId(),
+      }),
     })
 
-    console.log("Clear cart response status:", response.status)
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error("Clear cart HTTP error:", response.status, errorText)
-      throw new Error(`HTTP ${response.status}: ${errorText}`)
-    }
-
     const data: CartResponse = await response.json()
-    console.log("Clear cart response data:", data)
 
     if (data.success) {
-      // Dispatch multiple events to ensure all components update
       window.dispatchEvent(new CustomEvent("cartUpdated"))
       window.dispatchEvent(new CustomEvent("cartCleared"))
-      console.log("Cart cleared successfully, deleted items:", data.deleted_items || 0)
       return true
     } else {
-      console.error("Failed to clear cart:", data.message)
       throw new Error(data.message || "Failed to clear cart")
     }
   } catch (error) {
@@ -245,11 +263,49 @@ export async function clearCart(): Promise<boolean> {
   }
 }
 
+// Transfer guest cart to authenticated user after login
+export async function transferGuestCart(): Promise<boolean> {
+  try {
+    const token = getAuthToken()
+    const sessionId = GuestSession.getSessionId()
+
+    if (!token || !sessionId) {
+      return false
+    }
+
+    const response = await fetch("/api/cart/transfer", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        session_id: sessionId,
+      }),
+    })
+
+    const data: CartResponse = await response.json()
+
+    if (data.success) {
+      // Clear guest session after successful transfer
+      GuestSession.clearSession()
+      window.dispatchEvent(new CustomEvent("cartUpdated"))
+      return true
+    }
+
+    return false
+  } catch (error) {
+    console.error("Transfer guest cart error:", error)
+    return false
+  }
+}
+
 // Clear cart after successful checkout with retry logic
 export async function clearCartAfterCheckout(): Promise<boolean> {
   try {
     console.log("Clearing cart after checkout...")
-    // Try to clear cart with retry logic
+
     let attempts = 0
     const maxAttempts = 3
     let lastError: Error | null = null
@@ -259,6 +315,8 @@ export async function clearCartAfterCheckout(): Promise<boolean> {
         const success = await clearCart()
         if (success) {
           console.log("Cart cleared after successful checkout")
+          // Clear guest session if it exists
+          GuestSession.clearSession()
           return true
         }
       } catch (error) {
@@ -267,7 +325,6 @@ export async function clearCartAfterCheckout(): Promise<boolean> {
       }
 
       attempts++
-      // Wait a bit before retrying
       if (attempts < maxAttempts) {
         console.log(`Waiting before retry attempt ${attempts + 1}...`)
         await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -285,8 +342,6 @@ export async function clearCartAfterCheckout(): Promise<boolean> {
 // Get cart items count - Count unique items, not quantities
 export function getCartItemsCount(cartItems: CartItem[]): number {
   if (!Array.isArray(cartItems)) return 0
-
-  // Return the number of unique items in cart
   return cartItems.length
 }
 
@@ -295,15 +350,12 @@ export function getCartTotal(cartItems: CartItem[]): number {
   if (!Array.isArray(cartItems)) return 0
 
   return cartItems.reduce((total, item) => {
-    // Use item.total if available, otherwise calculate from price * quantity
     let itemTotal = safeNumber(item.total)
-
     if (itemTotal === 0) {
       const price = safeNumber(item.price)
       const quantity = safeNumber(item.quantity)
       itemTotal = price * quantity
     }
-
     return total + itemTotal
   }, 0)
 }
@@ -318,7 +370,6 @@ export function getCartSummary(cartItems: CartItem[]) {
   const subtotal = getCartSubtotal(cartItems)
   const itemCount = getCartItemsCount(cartItems)
 
-  // Safe calculation for tax and shipping
   const taxRate = 0.08 // 8% tax rate
   const tax = subtotal * taxRate
   const shippingThreshold = 50000 // Free shipping over ₱50,000
@@ -349,6 +400,5 @@ export function validateCartItem(item: any): boolean {
 export function calculateItemTotal(price: number | string, quantity: number | string): number {
   const safePrice = safeNumber(price)
   const safeQuantity = safeNumber(quantity)
-
   return safePrice * safeQuantity
 }
