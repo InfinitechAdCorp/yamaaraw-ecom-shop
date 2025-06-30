@@ -397,13 +397,7 @@ export default function ProductDetailPage() {
                       {addingToCart ? "Adding..." : "Add to Cart"}
                     </Button>
 
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="border-2 border-orange-300 hover:bg-orange-50 hover:border-orange-400 py-4 px-4 bg-transparent"
-                    >
-                      <Heart className="w-6 h-6 text-orange-600" />
-                    </Button>
+                   
                   </div>
                 </div>
               </div>

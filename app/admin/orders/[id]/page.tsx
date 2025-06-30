@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
 import {
   ArrowLeft,
   Package,
@@ -17,164 +17,151 @@ import {
   XCircle,
   AlertCircle,
   Edit3,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import ETrikeLoader from "@/components/ui/etrike-loader";
-import { getCurrentUser } from "@/lib/auth";
+  DollarSign,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import ETrikeLoader from "@/components/ui/etrike-loader"
+import { getCurrentUser } from "@/lib/auth"
 
 interface OrderItem {
-  id: number;
-  product_id: number;
-  quantity: number;
-  price: number;
-  color: string | null;
-  total: number;
+  id: number
+  product_id: number
+  quantity: number
+  price: number
+  color: string | null
+  total: number
   product: {
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-    image_url: string;
-    images: string[];
-  };
+    id: number
+    name: string
+    description: string
+    price: number
+    image_url: string
+    images: string[]
+  }
 }
 
 interface OrderDetails {
-  id: number;
-  order_number: string;
-  status: string;
-  total: number;
-  subtotal: number;
-  shipping_fee: number;
-  created_at: string;
-  updated_at: string;
-  shipped_at: string | null;
-  delivered_at: string | null;
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  province: string;
-  zip_code: string;
-  payment_method: string;
+  id: number
+  order_number: string
+  status: string
+  payment_status?: string
+  total: number
+  subtotal: number
+  shipping_fee: number
+  created_at: string
+  updated_at: string
+  shipped_at: string | null
+  delivered_at: string | null
+  paid_at: string | null
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  address: string
+  city: string
+  province: string
+  zip_code: string
+  payment_method: string
   user: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  items: OrderItem[];
+    id: number
+    name: string
+    email: string
+  }
+  items: OrderItem[]
 }
 
 const getImageUrl = (product: any) => {
-  const baseUrl = process.env.NEXT_PUBLIC_LARAVEL_API_URL?.replace("/api", "") || "https://infinitech-api3.site";
-
-  if (
-    product?.images &&
-    Array.isArray(product.images) &&
-    product.images.length > 0
-  ) {
-    const imageUrl = product.images[0];
-
+  const baseUrl = process.env.NEXT_PUBLIC_LARAVEL_API_URL?.replace("/api", "") || "https://infinitech-api3.site"
+  if (product?.images && Array.isArray(product.images) && product.images.length > 0) {
+    const imageUrl = product.images[0]
     if (imageUrl.startsWith("http")) {
-      return imageUrl;
+      return imageUrl
     }
-
     if (imageUrl.startsWith("/storage")) {
-      return `${baseUrl}${imageUrl}`;
+      return `${baseUrl}${imageUrl}`
     }
-
-    return `${baseUrl}/storage/products/${imageUrl}`;
+    return `${baseUrl}/storage/products/${imageUrl}`
   }
-
   if (product?.image_url) {
-    const imagePath = product.image_url;
-
+    const imagePath = product.image_url
     if (imagePath.startsWith("http")) {
-      return imagePath;
+      return imagePath
     }
-
     if (imagePath.startsWith("/storage")) {
-      return `${baseUrl}${imagePath}`;
+      return `${baseUrl}${imagePath}`
     }
-
-    return `${baseUrl}/storage/products/${imagePath}`;
+    return `${baseUrl}/storage/products/${imagePath}`
   }
-
-  return "/placeholder.svg?height=64&width=64";
-};
+  return "/placeholder.svg?height=64&width=64"
+}
 
 export default function AdminOrderDetailsPage() {
-  const router = useRouter();
-  const params = useParams();
-  const orderId = params.id as string;
+  const router = useRouter()
+  const params = useParams()
+  const orderId = params.id as string
 
-  const [order, setOrder] = useState<OrderDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [order, setOrder] = useState<OrderDetails | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false)
 
   useEffect(() => {
-    const user = getCurrentUser();
+    const user = getCurrentUser()
     if (!user || user.role !== "admin") {
-      router.push("/login");
-      return;
+      router.push("/login")
+      return
     }
-
     if (orderId) {
-      fetchOrderDetails();
+      fetchOrderDetails()
     }
-  }, [router, orderId]);
+  }, [router, orderId])
 
   const fetchOrderDetails = async () => {
     try {
-      setLoading(true);
-      setError(null);
-
-      const token = getAuthToken();
+      setLoading(true)
+      setError(null)
+      const token = getAuthToken()
       const response = await fetch(`/api/admin/orders/${orderId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      });
-
-      const data = await response.json();
+      })
+      const data = await response.json()
       if (data.success) {
-        setOrder(data.data);
+        setOrder(data.data)
       } else {
-        throw new Error(data.message || "Failed to fetch order details");
+        throw new Error(data.message || "Failed to fetch order details")
       }
     } catch (error) {
-      console.error("Error fetching order details:", error);
-      setError("Failed to fetch order details. Please try again.");
+      console.error("Error fetching order details:", error)
+      setError("Failed to fetch order details. Please try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const getAuthToken = () => {
     try {
-      const sessionData = localStorage.getItem("session");
-      if (!sessionData) return null;
-      const session = JSON.parse(sessionData);
-      return session.token || null;
+      const sessionData = localStorage.getItem("session")
+      if (!sessionData) return null
+      const session = JSON.parse(sessionData)
+      return session.token || null
     } catch (error) {
-      return null;
+      return null
     }
-  };
+  }
 
   const handleStatusUpdate = async (newStatus: string) => {
-    if (!order) return;
+    if (!order) return
 
     try {
-      setUpdatingStatus(true);
-      const token = getAuthToken();
-
+      setUpdatingStatus(true)
+      const token = getAuthToken()
       const response = await fetch(`/api/orders/${order.id}/status`, {
         method: "PUT",
         headers: {
@@ -182,22 +169,50 @@ export default function AdminOrderDetailsPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ status: newStatus }),
-      });
-
-      const data = await response.json();
+      })
+      const data = await response.json()
       if (data.success) {
-        await fetchOrderDetails(); // Refresh order details
-        setError(null);
+        await fetchOrderDetails() // Refresh order details
+        setError(null)
       } else {
-        throw new Error(data.message || "Failed to update status");
+        throw new Error(data.message || "Failed to update status")
       }
     } catch (error) {
-      console.error("Error updating order status:", error);
-      setError("Failed to update order status. Please try again.");
+      console.error("Error updating order status:", error)
+      setError("Failed to update order status. Please try again.")
     } finally {
-      setUpdatingStatus(false);
+      setUpdatingStatus(false)
     }
-  };
+  }
+
+  const handlePaymentStatusUpdate = async (newPaymentStatus: string) => {
+    if (!order) return
+
+    try {
+      setUpdatingPaymentStatus(true)
+      const token = getAuthToken()
+      const response = await fetch(`/api/orders/${order.id}/payment-status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ payment_status: newPaymentStatus }),
+      })
+      const data = await response.json()
+      if (data.success) {
+        await fetchOrderDetails() // Refresh order details
+        setError(null)
+      } else {
+        throw new Error(data.message || "Failed to update payment status")
+      }
+    } catch (error) {
+      console.error("Error updating payment status:", error)
+      setError("Failed to update payment status. Please try again.")
+    } finally {
+      setUpdatingPaymentStatus(false)
+    }
+  }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-PH", {
@@ -205,62 +220,91 @@ export default function AdminOrderDetailsPage() {
       currency: "PHP",
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(price);
-  };
+    }).format(price)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+        return "bg-yellow-100 text-yellow-800 border-yellow-200"
       case "confirmed":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "bg-blue-100 text-blue-800 border-blue-200"
       case "processing":
-        return "bg-purple-100 text-purple-800 border-purple-200";
+        return "bg-purple-100 text-purple-800 border-purple-200"
       case "shipped":
-        return "bg-orange-100 text-orange-800 border-orange-200";
+        return "bg-orange-100 text-orange-800 border-orange-200"
       case "delivered":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "bg-green-100 text-green-800 border-green-200"
       case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "bg-red-100 text-red-800 border-red-200"
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "bg-gray-100 text-gray-800 border-gray-200"
     }
-  };
+  }
+
+  const getPaymentStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      case "paid":
+        return "bg-green-100 text-green-800 border-green-200"
+      case "failed":
+        return "bg-red-100 text-red-800 border-red-200"
+      case "refunded":
+        return "bg-blue-100 text-blue-800 border-blue-200"
+      case "cancelled":
+        return "bg-gray-100 text-gray-800 border-gray-200"
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200"
+    }
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "pending":
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-4 h-4" />
       case "confirmed":
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className="w-4 h-4" />
       case "processing":
-        return <Package className="w-4 h-4" />;
+        return <Package className="w-4 h-4" />
       case "shipped":
-        return <Truck className="w-4 h-4" />;
+        return <Truck className="w-4 h-4" />
       case "delivered":
-        return <CheckCircle className="w-4 h-4" />;
+        return <CheckCircle className="w-4 h-4" />
       case "cancelled":
-        return <XCircle className="w-4 h-4" />;
+        return <XCircle className="w-4 h-4" />
       default:
-        return <AlertCircle className="w-4 h-4" />;
+        return <AlertCircle className="w-4 h-4" />
     }
-  };
+  }
 
-  const statuses = [
-    "pending",
-    "confirmed",
-    "processing",
-    "shipped",
-    "delivered",
-    "cancelled",
-  ];
+  const getPaymentStatusIcon = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Clock className="w-4 h-4" />
+      case "paid":
+        return <CheckCircle className="w-4 h-4" />
+      case "failed":
+        return <XCircle className="w-4 h-4" />
+      case "refunded":
+        return <DollarSign className="w-4 h-4" />
+      case "cancelled":
+        return <XCircle className="w-4 h-4" />
+      default:
+        return <AlertCircle className="w-4 h-4" />
+    }
+  }
+
+  const statuses = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"]
+
+  const paymentStatuses = ["pending", "paid", "failed", "refunded", "cancelled"]
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <ETrikeLoader />
       </div>
-    );
+    )
   }
 
   if (error || !order) {
@@ -269,21 +313,15 @@ export default function AdminOrderDetailsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Alert className="border-red-200 bg-red-50">
             <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              {error || "Order not found"}
-            </AlertDescription>
+            <AlertDescription className="text-red-800">{error || "Order not found"}</AlertDescription>
           </Alert>
-          <Button
-            onClick={() => router.push("/admin/orders")}
-            className="mt-4"
-            variant="outline"
-          >
+          <Button onClick={() => router.push("/admin/orders")} className="mt-4" variant="outline">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Orders
           </Button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -304,9 +342,7 @@ export default function AdminOrderDetailsPage() {
                 <Badge className="mb-2 bg-white/20 text-white border-white/30 hover:bg-white/30 backdrop-blur-sm">
                   Order Details
                 </Badge>
-                <h1 className="text-2xl lg:text-3xl font-bold">
-                  #{order.order_number}
-                </h1>
+                <h1 className="text-2xl lg:text-3xl font-bold">#{order.order_number}</h1>
                 <p className="text-orange-100">
                   Placed on{" "}
                   {new Date(order.created_at).toLocaleDateString("en-PH", {
@@ -320,11 +356,15 @@ export default function AdminOrderDetailsPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Badge
-                className={`${getStatusColor(order.status)} flex items-center space-x-2 px-3 py-2`}
-              >
+              <Badge className={`${getStatusColor(order.status)} flex items-center space-x-2 px-3 py-2`}>
                 {getStatusIcon(order.status)}
                 <span className="font-medium capitalize">{order.status}</span>
+              </Badge>
+              <Badge
+                className={`${getPaymentStatusColor(order.payment_status || "pending")} flex items-center space-x-2 px-3 py-2`}
+              >
+                {getPaymentStatusIcon(order.payment_status || "pending")}
+                <span className="font-medium capitalize">{order.payment_status || "pending"}</span>
               </Badge>
             </div>
           </div>
@@ -336,9 +376,7 @@ export default function AdminOrderDetailsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
           <Alert className="border-red-200 bg-red-50">
             <AlertCircle className="h-4 w-4 text-red-600" />
-            <AlertDescription className="text-red-800">
-              {error}
-            </AlertDescription>
+            <AlertDescription className="text-red-800">{error}</AlertDescription>
           </Alert>
         </div>
       )}
@@ -359,24 +397,17 @@ export default function AdminOrderDetailsPage() {
               <CardContent>
                 <div className="space-y-4">
                   {order.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center space-x-4 p-4 border rounded-lg"
-                    >
+                    <div key={item.id} className="flex items-center space-x-4 p-4 border rounded-lg">
                       <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden">
                         {item.product ? (
                           <img
-                            src={
-                              getImageUrl(item.product) || "/placeholder.svg"
-                            }
+                            src={getImageUrl(item.product) || "/placeholder.svg"}
                             alt={item.product.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = "none";
-                              target.nextElementSibling?.classList.remove(
-                                "hidden"
-                              );
+                              const target = e.target as HTMLImageElement
+                              target.style.display = "none"
+                              target.nextElementSibling?.classList.remove("hidden")
                             }}
                           />
                         ) : (
@@ -385,24 +416,14 @@ export default function AdminOrderDetailsPage() {
                         <Package className="w-8 h-8 text-gray-400 hidden" />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">
-                          {item.product.name}
-                        </h4>
-                        <p className="text-sm text-gray-600">
-                          {item.product.description}
-                        </p>
-                        {item.color && (
-                          <p className="text-sm text-gray-500">
-                            Color: {item.color}
-                          </p>
-                        )}
+                        <h4 className="font-semibold text-gray-900">{item.product.name}</h4>
+                        <p className="text-sm text-gray-600">{item.product.description}</p>
+                        {item.color && <p className="text-sm text-gray-500">Color: {item.color}</p>}
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-sm text-gray-600">
                             Qty: {item.quantity} × {formatPrice(item.price)}
                           </span>
-                          <span className="font-semibold text-orange-600">
-                            {formatPrice(item.total)}
-                          </span>
+                          <span className="font-semibold text-orange-600">{formatPrice(item.total)}</span>
                         </div>
                       </div>
                     </div>
@@ -438,11 +459,47 @@ export default function AdminOrderDetailsPage() {
                     </Button>
                   ))}
                 </div>
-                {updatingStatus && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    Updating status...
-                  </p>
-                )}
+                {updatingStatus && <p className="text-sm text-gray-600 mt-2">Updating status...</p>}
+              </CardContent>
+            </Card>
+
+            {/* Payment Status Update */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <CreditCard className="w-5 h-5" />
+                  <span>Update Payment Status</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-2">Current Payment Status:</p>
+                  <Badge
+                    className={`${getPaymentStatusColor(order.payment_status || "pending")} flex items-center space-x-2 px-3 py-2 w-fit`}
+                  >
+                    {getPaymentStatusIcon(order.payment_status || "pending")}
+                    <span className="font-medium capitalize">{order.payment_status || "pending"}</span>
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {paymentStatuses.map((status) => (
+                    <Button
+                      key={status}
+                      onClick={() => handlePaymentStatusUpdate(status)}
+                      disabled={updatingPaymentStatus || (order.payment_status || "pending") === status}
+                      variant={(order.payment_status || "pending") === status ? "default" : "outline"}
+                      className={`${
+                        (order.payment_status || "pending") === status
+                          ? "bg-orange-500 hover:bg-orange-600"
+                          : "border-orange-200 text-orange-600 hover:bg-orange-50"
+                      }`}
+                    >
+                      {getPaymentStatusIcon(status)}
+                      <span className="ml-2 capitalize">{status}</span>
+                    </Button>
+                  ))}
+                </div>
+                {updatingPaymentStatus && <p className="text-sm text-gray-600 mt-2">Updating payment status...</p>}
               </CardContent>
             </Card>
           </div>
@@ -466,14 +523,10 @@ export default function AdminOrderDetailsPage() {
                     <p className="font-semibold text-gray-900">
                       {order.first_name} {order.last_name}
                     </p>
-                    <p className="text-sm text-gray-600">
-                      Customer ID: {order.user.id}
-                    </p>
+                    <p className="text-sm text-gray-600">Customer ID: {order.user.id}</p>
                   </div>
                 </div>
-
                 <Separator />
-
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Mail className="w-4 h-4 text-gray-400" />
@@ -514,33 +567,32 @@ export default function AdminOrderDetailsPage() {
                         : "bg-green-100 text-green-800 border-green-200"
                     }
                   >
-                    {order.payment_method === "cod"
-                      ? "Cash on Delivery"
-                      : "Card Payment"}
+                    {order.payment_method === "cod" ? "Cash on Delivery" : "Card Payment"}
                   </Badge>
                 </div>
-
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Payment Status:</span>
+                  <Badge
+                    className={`${getPaymentStatusColor(order.payment_status || "pending")} flex items-center space-x-1`}
+                  >
+                    {getPaymentStatusIcon(order.payment_status || "pending")}
+                    <span className="capitalize">{order.payment_status || "pending"}</span>
+                  </Badge>
+                </div>
                 <Separator />
-
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Subtotal:</span>
-                    <span className="text-sm">
-                      {formatPrice(order.subtotal)}
-                    </span>
+                    <span className="text-sm">{formatPrice(order.subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Shipping Fee:</span>
-                    <span className="text-sm">
-                      {formatPrice(order.shipping_fee)}
-                    </span>
+                    <span className="text-sm">{formatPrice(order.shipping_fee)}</span>
                   </div>
                   <Separator />
                   <div className="flex justify-between">
                     <span className="font-semibold">Total:</span>
-                    <span className="font-bold text-orange-600">
-                      {formatPrice(order.total)}
-                    </span>
+                    <span className="font-bold text-orange-600">{formatPrice(order.total)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -571,22 +623,37 @@ export default function AdminOrderDetailsPage() {
                   </div>
                 </div>
 
+                {order.paid_at && (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="text-sm">
+                      <p className="font-medium">Payment Confirmed</p>
+                      <p className="text-gray-600">
+                        {new Date(order.paid_at).toLocaleDateString("en-PH", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {order.shipped_at && (
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                     <div className="text-sm">
                       <p className="font-medium">Order Shipped</p>
                       <p className="text-gray-600">
-                        {new Date(order.shipped_at).toLocaleDateString(
-                          "en-PH",
-                          {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {new Date(order.shipped_at).toLocaleDateString("en-PH", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </div>
                   </div>
@@ -598,16 +665,13 @@ export default function AdminOrderDetailsPage() {
                     <div className="text-sm">
                       <p className="font-medium">Order Delivered</p>
                       <p className="text-gray-600">
-                        {new Date(order.delivered_at).toLocaleDateString(
-                          "en-PH",
-                          {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {new Date(order.delivered_at).toLocaleDateString("en-PH", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </p>
                     </div>
                   </div>
@@ -618,5 +682,5 @@ export default function AdminOrderDetailsPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

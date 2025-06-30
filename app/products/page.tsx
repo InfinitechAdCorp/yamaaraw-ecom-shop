@@ -341,10 +341,7 @@ export default function ProductsPage() {
                       <ShoppingCart className="w-3 md:w-4 h-3 md:h-4 mr-1 md:mr-2" />
                       {animatingProduct === product.id ? "Adding..." : "Add to Cart"}
                     </Button>
-                    <div className="flex items-center space-x-2">
-                      <Star className="w-4 h-4 text-yellow-500 cursor-pointer hover:text-yellow-600" />
-                      <Heart className="w-4 h-4 text-red-500 cursor-pointer hover:text-red-600" />
-                    </div>
+                    
                   </div>
                 </div>
               </CardContent>

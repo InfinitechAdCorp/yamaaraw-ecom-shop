@@ -136,16 +136,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
 
         {/* Enhanced Action Buttons - Only Wishlist now */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-          <Button
-            onClick={handleWishlistClick}
-            size="sm"
-            variant="secondary"
-            className="w-11 h-11 p-0 rounded-full shadow-xl bg-white/90 backdrop-blur-sm hover:bg-orange-50 border-0 hover:scale-110 transition-all duration-200"
-          >
-            <Heart className="w-4 h-4 text-gray-600 hover:text-orange-500 transition-colors" />
-          </Button>
-        </div>
+        
 
         {/* Stock Status Overlay */}
         {!product.in_stock && (

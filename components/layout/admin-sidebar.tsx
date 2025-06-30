@@ -210,15 +210,7 @@ export default function AdminSidebar() {
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-700 space-y-2">
-          <Link
-            href="/"
-            className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-gray-700 hover:text-white transition-all duration-200 group"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            {!isCollapsed && (
-              <span className="font-medium group-hover:translate-x-1 transition-transform">Back to Store</span>
-            )}
-          </Link>
+         
           <button className="flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-300 hover:bg-red-600 hover:text-white transition-all duration-200 group w-full">
             <LogOut className="w-5 h-5" />
             {!isCollapsed && <span className="font-medium group-hover:translate-x-1 transition-transform">Logout</span>}
