@@ -395,7 +395,7 @@ export default function AdminContactInquiries() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Header */}
-      <section className="bg-gradient-to-br from-blue-500 via-indigo-500 to-blue-600 text-white py-12">
+          <section className="bg-gradient-to-br from-orange-500 via-red-500 to-orange-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
